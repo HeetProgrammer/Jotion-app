@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique               // Required: Unique user email
+  name         String?                        // Optional: Display name
+  image        String?                        // Optional: Profile picture (from Google/GitHub, etc.)
+  notes        NoteUser[]                         // Relation: List of notes owned by this user
+  workspaces   WorkspaceUser[]                // Relation: Workspace memberships (for flexible many-to-many workspaces)
+  createdAt    DateTime @default(now())       // Auto-timestamps when user joined
+  created_workspaces Workspace[]              // All workspaces created by user
+}
+
+// This is a joint table that controls 
+model WorkspaceUser {
+  id          Int        @id @default(autoincrement())
+  user        User       @relation(fields: [userId], references: [id])
+  userId      Int
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  workspaceId Int
+  role        String?    // e.g. 'owner', 'editor', 'viewer'
+  joinedAt    DateTime   @default(now())
+
+  @@unique([userId, workspaceId])  // Prevents duplicate memberships
+}
+
+
+model Workspace {
+  id          Int        @id @default(autoincrement())
+  owner       User       @relation(fields: [ownerId], references: [id]) 
+  ownerId     Int    
+  users       WorkspaceUser[] // Contains all users that have access to the workspace
+  notes       Note[]
+
+}
+
+model Note {
+  id          Int        @id @default(autoincrement())
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id]) //Workspace which the note belongs to
+  workspaceId Int
+  createdAt    DateTime   @default(now())
+  lasteditedAt DateTime   @default(now())
+  path         String     // Example "folder1/subfolder1/note1.txt"
+  users        NoteUser[]   
+
+}
+
+// This is a join table that controls edit permissions between users(in the workspace) and notes
+model NoteUser {
+  id          Int        @id @default(autoincrement())
+  note        Note        @relation(fields: [noteId], references: [id])
+  noteId      Int
+  user        User       @relation(fields: [userId], references: [id])
+  userId      Int 
+  role        String?   // e.g. reader and editor 
+
+  @@unique([userId, noteId])  //Prevents duplicate user and note relationships
+      
+}
