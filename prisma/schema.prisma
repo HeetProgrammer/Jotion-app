@@ -14,60 +14,148 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
+
+
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique               // Required: Unique user email
-  name         String?                        // Optional: Display name
-  image        String?                        // Optional: Profile picture (from Google/GitHub, etc.)
-  notes        NoteUser[]                         // Relation: List of notes owned by this user
-  workspaces   WorkspaceUser[]                // Relation: Workspace memberships (for flexible many-to-many workspaces)
-  createdAt    DateTime @default(now())       // Auto-timestamps when user joined
-  created_workspaces Workspace[]              // All workspaces created by user
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  password      String?   // For email and password login
+  
+  // Relations
+  sessions      Session[]
+  accounts      Account[]
+  
+  // App Specific Relations
+  ownedWorkspaces Workspace[]       @relation("Owner")
+  memberships     WorkspaceMember[]
+  filePermissions FilePermission[] 
+  
+  @@map("user")
 }
 
-// This is a joint table that controls 
-model WorkspaceUser {
-  id          Int        @id @default(autoincrement())
-  user        User       @relation(fields: [userId], references: [id])
-  userId      Int
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
-  workspaceId Int
-  role        String?    // e.g. 'owner', 'editor', 'viewer'
-  joinedAt    DateTime   @default(now())
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([userId, workspaceId])  // Prevents duplicate memberships
+  @@map("session")
 }
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
 
 
 model Workspace {
-  id          Int        @id @default(autoincrement())
-  owner       User       @relation(fields: [ownerId], references: [id]) 
-  ownerId     Int    
-  users       WorkspaceUser[] // Contains all users that have access to the workspace
-  notes       Note[]
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  owner       User              @relation("Owner", fields: [ownerId], references: [id])
+  members     WorkspaceMember[]
+  files       File[]
+  invitations Invitation[]      // For pending invites
 }
 
-model Note {
-  id          Int        @id @default(autoincrement())
-  workspace   Workspace  @relation(fields: [workspaceId], references: [id]) //Workspace which the note belongs to
-  workspaceId Int
-  createdAt    DateTime   @default(now())
-  lasteditedAt DateTime   @default(now())
-  path         String     // Example "folder1/subfolder1/note1.txt"
-  users        NoteUser[]   
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        String   @default("MEMBER") // "OWNER", "EDITOR", "READER"
+  joinedAt    DateTime @default(now())
 
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
 }
 
-// This is a join table that controls edit permissions between users(in the workspace) and notes
-model NoteUser {
-  id          Int        @id @default(autoincrement())
-  note        Note        @relation(fields: [noteId], references: [id])
-  noteId      Int
-  user        User       @relation(fields: [userId], references: [id])
-  userId      Int 
-  role        String?   // e.g. reader and editor 
+model Invitation {
+  id          String       @id @default(cuid())
+  email       String
+  workspaceId String
+  token       String       @unique // Secure token for the email link
+  status      String       @default("PENDING") // PENDING, ACCEPTED
+  createdAt   DateTime     @default(now())
 
-  @@unique([userId, noteId])  //Prevents duplicate user and note relationships
-      
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+
+
+model File {
+  id          String   @id @default(cuid())
+  title       String
+  content     String?  @db.Text // Text field for Markdown content
+  isFolder    Boolean  @default(false) 
+  workspaceId String
+  parentId    String?  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  // Recursive Relation (File inside a File)
+  parent      File?     @relation("FileParent", fields: [parentId], references: [id])
+  children    File[]    @relation("FileParent")
+  
+  permissions FilePermission[]
+}
+
+model FilePermission {
+  id        String   @id @default(cuid())
+  fileId    String
+  userId    String
+  
+  // Granular Permissions
+  canEdit   Boolean  @default(false)
+  
+  
+  file      File     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([fileId, userId])
 }
