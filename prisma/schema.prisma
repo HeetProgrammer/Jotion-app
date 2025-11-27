@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
 }
 
 datasource db {
@@ -128,21 +128,27 @@ model Invitation {
 model File {
   id          String   @id @default(cuid())
   title       String
-  content     String?  @db.Text // Text field for Markdown content
+  content     Json?  // Content stored as JSON blocks for the editor 
   isFolder    Boolean  @default(false) 
   workspaceId String
   parentId    String?  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  level       Int      @default(0)
 
   // Relations
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   
   // Recursive Relation (File inside a File)
-  parent      File?     @relation("FileParent", fields: [parentId], references: [id])
+  parent      File?     @relation("FileParent", fields: [parentId], references: [id], onDelete: Cascade)
   children    File[]    @relation("FileParent")
   
   permissions FilePermission[]
+
+
+  @@index([workspaceId])
+  @@index([parentId])
+
 }
 
 model FilePermission {

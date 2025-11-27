@@ -1,13 +1,11 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { prisma } from "@/lib/prisma"; // <--- IMPORT THE SINGLETON INSTANCE
 
-import { PrismaClient } from "@/generated/prisma/client";
-
-const prisma = new PrismaClient();
 export const auth = betterAuth({
-    database: prismaAdapter(prisma, {
-        provider: "postgresql",
-    }),
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,

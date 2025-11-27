@@ -1,8 +1,8 @@
-
+import { getSession } from "next-auth/react";
 import { BookOpen } from "lucide-react"; 
 import Link from "next/link";
 
-export default function LoginPage() {
+export default function HomePage() {
   return (
     <div className="flex flex-col justify-center py-12 my-0.5">
       
