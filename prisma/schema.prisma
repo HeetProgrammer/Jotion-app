@@ -128,7 +128,7 @@ model Invitation {
 model File {
   id          String   @id @default(cuid())
   title       String
-  content     Json?  // Content stored as JSON blocks for the editor 
+  content     String?   @db.Text
   isFolder    Boolean  @default(false) 
   workspaceId String
   parentId    String?  

@@ -64,7 +64,7 @@ export default function FileItem({ file, workspaceId }) {
             toast.success("Renamed file successfully");
             setIsRenaming(false);
             router.refresh();
-            setRefreshId((prev)=>prev+1);
+            setRefreshId((prev) => prev + 1);
             setTitle(newTitle);
         } catch (error) {
             toast.error("Failed to rename");
@@ -145,7 +145,11 @@ export default function FileItem({ file, workspaceId }) {
                         />
                     </form>
                 ) : (
-                    <span className="truncate flex-1 select-none">{title}</span>
+                    <span className="truncate flex-1 select-none">{title}
+                    {!file.isFolder && (
+                    <span className="text-gray-400 text-xs ml-0.5">.md</span>)
+                    }
+                    </span>
                 )}
 
                 <div className="ml-auto flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
@@ -159,9 +163,7 @@ export default function FileItem({ file, workspaceId }) {
                         >
                             <Pencil className="h-3 w-3" />
                         </div>
-                    )}
-
-                    <div className="ml-auto flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                    )}<div className="ml-auto flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
                         <div role="button" onClick={handleDelete} className="p-1 rounded-sm hover:bg-gray-300 hover:text-red-500">
                             <Trash className="h-3 w-3" />
                         </div>
@@ -179,27 +181,27 @@ export default function FileItem({ file, workspaceId }) {
                     </div>
                 </div>
             </div>
-                {isExpanded && (
-                    <>
-                        {isCreating && (
-                            <FileRowInput
-                                workspaceId={workspaceId}
-                                parentId={file.id}
-                                level={file.level + 1}
-                                isFolder={folderIsCreating} // Tells the input to create a file or folder
-                                onComplete={() => setIsCreating(false)}
-                                onCreated={handleRefresh}
-                            />
-                        )}
-
-                        <FilesList
-                            key={refreshId} // Updates when new file is made
+            {isExpanded && (
+                <>
+                    {isCreating && (
+                        <FileRowInput
                             workspaceId={workspaceId}
                             parentId={file.id}
+                            level={file.level + 1}
+                            isFolder={folderIsCreating} // Tells the input to create a file or folder
+                            onComplete={() => setIsCreating(false)}
+                            onCreated={handleRefresh}
                         />
-                    </>
-                )}
-            </div>
-        
+                    )}
+
+                    <FilesList
+                        key={refreshId} // Updates when new file is made
+                        workspaceId={workspaceId}
+                        parentId={file.id}
+                    />
+                </>
+            )}
+        </div>
+
     );
 }
