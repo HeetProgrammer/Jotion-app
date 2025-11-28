@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import WorkspaceRow from "@/components/main/workspace-row";
 import { Workspace } from "@prisma/client";
 import { checkUserExists } from "@/lib/auth-functions";
+import UserProfileDialog from "@/components/main/user-profile-dialog";
 
 export default async function WorkspaceListPage() {
     
@@ -30,21 +31,34 @@ export default async function WorkspaceListPage() {
 
     // Returns a list of workspaces after resolving all promises
     const workspaces = await Promise.all(workspacePromises);
+    if(!workspaces){
+        return redirect("/onboarding");
+    }
 
     const combinedData = memberships.map((membership, index) => ({
         membership,
         workspace: workspaces[index]
     }))
 
+    
+
     return (
         <div className="min-h-screen bg-white p-8 md:p-12 text-gray-950">
             <div className="max-w-5xl mx-auto">
                 <div className="mb-10">
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-                        Welcome, {session.user.name}
-                    </h1>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                            Welcome, {session.user.name}
+                        </h1>
+                        
+                        <UserProfileDialog 
+                            initialName={session.user.name} 
+                            initialEmail={session.user.email} 
+                        />
+                    </div>
+                    
                     <p className="text-gray-500 mt-2 text-lg">
-                        Select a workspace to jump back in.
+                        Select a workspace to jump back in or create a new workspace
                     </p>
                 </div>
 
@@ -75,6 +89,7 @@ export default async function WorkspaceListPage() {
                         </tbody>
                     </table>
                 </div>
+                <button type="button" className="text-white bg-success box-border border border-transparent hover:bg-success-strong focus:ring-4 focus:ring-success-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none bg-green-700 my-5 hover:cursor-pointer hover:bg-green-800 transition"><a href="/onboarding">Create Workspace</a></button>
             </div>
         </div>
     );

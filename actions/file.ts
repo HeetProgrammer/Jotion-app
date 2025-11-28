@@ -7,14 +7,15 @@ import { checkUserExists, checkWorkspaceMembership, checkWorkspacePermissions } 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-export async function updateFileContent(fileId: string, content: string) {
+export async function updateFileContent(fileId: string, content: string, plainText: string) {
 
   await prisma.file.update({
     where: { 
         id: fileId 
     },
     data: {
-         content 
+         content,
+         searchText: plainText, 
         }
   });
 }

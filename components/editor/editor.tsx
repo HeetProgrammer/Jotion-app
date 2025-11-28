@@ -19,8 +19,9 @@ export default function Editor({ fileId, initialContent, editable = true }) {
   });
 
   const handleUpload = (json: string) => {
+    const text = generatePlainText()
     setSaveStatus("Saving...");
-    updateFileContent(fileId, json).then(() => {
+    updateFileContent(fileId, json, text).then(() => {
         setSaveStatus("Saved");
     });
   };
@@ -40,6 +41,20 @@ export default function Editor({ fileId, initialContent, editable = true }) {
   };
 
 
+  const generatePlainText = () => {
+    const text = editor.document.map((block) => {
+        const content = block.content;
+        if (Array.isArray(content)) {
+            // Join all text segments in this block
+            return content.map((c) => c.text).join("");
+        }
+        return ""; // Empty lines or image blocks return empty string
+    }).join("\n"); // Join blocks with newlines
+
+    return text;
+  }
+
+
   // Exports as Markdown
   const handleExportMarkdown = async () => {
     const markdown = await editor.blocksToMarkdownLossy(editor.document);
@@ -54,17 +69,10 @@ export default function Editor({ fileId, initialContent, editable = true }) {
 
   // Exports as Plain Text (Markdown syntax removed)
   const handleExportText = async () => {
-    // We loop through every block and just grab the raw text
-    const text = editor.document.map((block) => {
-        const content = block.content;
-        if (Array.isArray(content)) {
-            // Join all text segments in this block
-            return content.map((c) => c.text).join("");
-        }
-        return ""; // Empty lines or image blocks return empty string
-    }).join("\n"); // Join blocks with newlines
+    const text = generatePlainText();
 
     downloadFile(text, "document.txt", "text/plain");
+    return text;
   };
 
   return (

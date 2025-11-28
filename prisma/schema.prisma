@@ -119,7 +119,7 @@ model Invitation {
   token       String       @unique // Secure token for the email link
   status      String       @default("PENDING") // PENDING, ACCEPTED
   createdAt   DateTime     @default(now())
-
+  
   workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
@@ -135,6 +135,7 @@ model File {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   level       Int      @default(0)
+  searchText  String?  @db.Text
 
   // Relations
   workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)

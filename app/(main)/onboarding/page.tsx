@@ -11,9 +11,6 @@ export default function OnboardingPage() {
             <BookOpen size={24} />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Name your workspace</h1>
-          <p className="text-gray-500 mt-2 text-sm">
-            This is the home for all your notes and docs.
-          </p>
         </div>
 
         <form action={createWorkspace} className="space-y-4">

@@ -81,6 +81,7 @@ export default function FileItem({ file, workspaceId }) {
             toast.success("Successfully deleted");
             setIsDeleted(true);
             router.refresh();
+            router.push(`/dashboard/${workspaceId}`);
         } catch (error) {
             toast.error("Failed to delete file");
         }

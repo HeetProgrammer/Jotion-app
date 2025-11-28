@@ -15,9 +15,6 @@ export default function Sidebar({ workspaceId, workspaceName }: { workspaceId: s
                 <span className="font-semibold text-sm text-gray-700 pl-2">
                     { workspaceName }
                 </span>
-                <button className="p-1 hover:bg-gray-300 rounded-sm">
-                    <ChevronsLeft className="h-4 w-4" />
-                </button>
             </div>
 
             <div className="px-3 space-y-1">

@@ -29,3 +29,23 @@ export async function createWorkspace(formData: FormData) {
 
   redirect(`/dashboard`);
 }
+
+
+export async function deleteWorkspace(workspaceId: string){
+  await prisma.workspace.delete({
+    where:{
+      id: workspaceId,
+    }
+  });
+
+}
+
+
+export async function getWorkspaces(session){
+  const relations = prisma.workspaceMember.findMany({
+    where:{
+      userId: session.user.id,
+    }
+  });
+  return relations;
+}

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import Sidebar from "@/components/sidebar/sidebar";
 import { ReactNode } from "react";
 import { checkUserExists, checkWorkspaceMembership } from "@/lib/auth-functions";
+import { SearchCommand } from "@/components/search-command";
 
 export default async function WorkspaceLayout({
     children,
@@ -30,6 +31,7 @@ export default async function WorkspaceLayout({
             </div>
 
             <main className="flex-1 h-full overflow-y-auto bg-white">
+                <SearchCommand workspaceId={workspaceId}/>
                 {children}
             </main>
         </div>
