@@ -2,7 +2,7 @@
 
 **[View Live Demo](https://jotion-app-iota.vercel.app/)**
 
-Jotion is a real-time collaborative workspace application built for a hackathon. It functionality mimics core Notion features, allowing users to create hierarchical documents, organize them into workspaces, and edit them simultaneously with team members.
+Jotion is a real-time collaborative workspace application. It functionality mimics core Notion features, allowing users to create hierarchical documents, organize them into workspaces, and edit them simultaneously with team members.
 
 
 
