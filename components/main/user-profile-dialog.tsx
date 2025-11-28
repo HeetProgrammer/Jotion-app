@@ -5,6 +5,8 @@ import { Settings, X, Loader2 } from "lucide-react";
 import { updateUserProfile } from "@/actions/user";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { signOutAction } from "@/actions/auth";
+import { LogOut } from "lucide-react";
 
 
 
@@ -26,8 +28,9 @@ export default function UserProfileDialog({ initialName, initialEmail }: { initi
             toast.success("Profile updated successfully");
             setIsOpen(false);
             router.refresh();
-        } catch {
+        } catch(error) {
             toast.error("Failed to update profile");
+            console.log(error);
         }
         setIsLoading(false);
     };
@@ -106,6 +109,17 @@ export default function UserProfileDialog({ initialName, initialEmail }: { initi
                                 </button>
                             </div>
                         </form>
+                        <div className="px-6 py-4 border-t">
+                            <form action={signOutAction}>
+                                <button
+                                    type="submit"
+                                    className="w-full flex items-center justify-center gap-2 text-red-600 border border-red-200 py-2 rounded-md hover:bg-red-50 transition text-sm font-medium"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    Sign Out
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             )}

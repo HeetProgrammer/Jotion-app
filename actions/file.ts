@@ -51,6 +51,12 @@ export async function createFile({
             parentId, // This links it to a parent document (recursiob)
             isFolder,
             level: child_level,
+            permissions:{
+              create:{
+                userId: session.user.id,
+                canEdit: true
+              }
+            }
         }
     });
    return file;
@@ -109,6 +115,32 @@ export async function renameFile(fileId: string, newTitle: string) {
   revalidatePath(`/dashboard/${updatedFile.workspaceId}`);
 
   return updatedFile;
+}
+
+
+
+// Checks whether user can edit file
+export async function getPermission(file: any) {
+  const session = await checkUserExists();
+  const membership =  await checkWorkspaceMembership(file.workspaceId, session);
+  let fileMember = await prisma.filePermission.findFirst({
+    where: {
+      fileId: file.id,
+      userId: session.user.id
+    }
+  })
+  console.log(membership.role);
+  if(!fileMember){
+    fileMember = await prisma.filePermission.create({
+      data:{
+        canEdit: membership.role != "MEMBER",
+        fileId: file.id,
+        userId: session.user.id
+      }
+    })
+  }
+  return fileMember!.canEdit;
+  
 }
     
 

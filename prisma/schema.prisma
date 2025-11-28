@@ -35,7 +35,8 @@ model User {
   // App Specific Relations
   ownedWorkspaces Workspace[]       @relation("Owner")
   memberships     WorkspaceMember[]
-  filePermissions FilePermission[] 
+  filePermissions FilePermission[]
+  notifications Notification[]
   
   @@map("user")
 }
@@ -96,7 +97,7 @@ model Workspace {
   owner       User              @relation("Owner", fields: [ownerId], references: [id])
   members     WorkspaceMember[]
   files       File[]
-  invitations Invitation[]      // For pending invites
+  invites Invite[]      // For pending invites
 }
 
 model WorkspaceMember {
@@ -112,17 +113,29 @@ model WorkspaceMember {
   @@unique([workspaceId, userId])
 }
 
-model Invitation {
-  id          String       @id @default(cuid())
+model Invite {
+  id          String   @id @default(cuid())
   email       String
   workspaceId String
-  token       String       @unique // Secure token for the email link
-  status      String       @default("PENDING") // PENDING, ACCEPTED
-  createdAt   DateTime     @default(now())
-  
-  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  status      String   @default("PENDING") // Options: PENDING, ACCEPTED
+  createdAt   DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  // Index for fast lookups when user logs in
+  @@index([email]) 
+  @@map("invite")
 }
 
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   // The Owner who gets the message
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
 
 model File {

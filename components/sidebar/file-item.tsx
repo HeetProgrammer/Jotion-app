@@ -18,12 +18,28 @@ import FilesList from "./files-list";
 import FileRowInput from "./file-row-input";
 import { renameFile } from "@/actions/file";
 import { Pencil } from "lucide-react";
+import { getPermission } from "@/actions/file";
 
 
 
 export default function FileItem({ file, workspaceId }) {
     const router = useRouter();
     const pathname = usePathname();
+    const [canEdit, setCanEdit] = useState(false);
+    useEffect(() => {
+        const checkPermission = async () => {
+            try {
+                const temp = await getPermission(file);
+                setCanEdit(temp);
+            } catch (error) {
+                console.error("Failed to fetch permission:", error);
+                setCanEdit(false);
+            }
+        };
+
+        checkPermission();
+
+    }, [file.id]); // Re-run if file.id changes
 
     // State
     const [isExpanded, setIsExpanded] = useState(false);
@@ -147,13 +163,13 @@ export default function FileItem({ file, workspaceId }) {
                     </form>
                 ) : (
                     <span className="truncate flex-1 select-none">{title}
-                    {!file.isFolder && (
-                    <span className="text-gray-400 text-xs ml-0.5">.md</span>)
-                    }
+                        {!file.isFolder && (
+                            <span className="text-gray-400 text-xs ml-0.5">.md</span>)
+                        }
                     </span>
                 )}
 
-                <div className="ml-auto flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                {canEdit && <div className="ml-auto flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-1">
 
                     {!isRenaming && (
                         <div
@@ -181,6 +197,7 @@ export default function FileItem({ file, workspaceId }) {
                         )}
                     </div>
                 </div>
+                }
             </div>
             {isExpanded && (
                 <>

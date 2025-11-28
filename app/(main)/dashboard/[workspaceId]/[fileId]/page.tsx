@@ -1,14 +1,29 @@
 import { prisma } from "@/lib/prisma";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import Editor from "@/components/editor/editor";
 
 
 export default async function FilePage({ params }) {
   const { workspaceId, fileId } = await params;
-
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+  if(!session) return;
 
   const file = await prisma.file.findUnique({
     where: { id: fileId },
   });
+  
+
+  const membership = await prisma.workspaceMember.findFirst({
+    where: {
+      workspaceId: workspaceId,
+      userId: session.user.id
+    }
+  });
+
+  const canEdit = ["OWNER", "EDITOR"].includes(membership.role)
 
   if(!file){ 
     return <div>File not found</div>;
@@ -28,6 +43,7 @@ export default async function FilePage({ params }) {
             <Editor 
                 fileId={file.id}
                 initialContent={file.content}
+                editable={canEdit}
             />
         </div>
         

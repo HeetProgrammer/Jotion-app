@@ -49,3 +49,15 @@ export async function getWorkspaces(session){
   });
   return relations;
 }
+
+export async function canCreateFiles(workspaceId: string){
+  const sessioN = await checkUserExists();
+  const member = await prisma.workspaceMember.findFirst({
+    where:{
+      userId: sessioN.user.id,
+      workspaceId,
+    }
+  })
+  if(!member) return;
+  return !(member.role === "READER");
+}

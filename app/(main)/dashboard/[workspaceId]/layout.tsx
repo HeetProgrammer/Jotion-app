@@ -24,10 +24,11 @@ export default async function WorkspaceLayout({
     );
     const session = await checkUserExists();
     const member = await checkWorkspaceMembership(workspaceId, session);
+    const canEdit = ["EDITOR", "OWNER"].includes(member.role);
     return (
         <div className="flex h-screen overflow-hidden">
             <div className="w-64 shrink-0 hidden md:block border-r bg-gray-50 h-full overflow-y-auto z-50">
-                <Sidebar workspaceId={workspaceId} workspaceName = {workspace.name} />
+                <Sidebar workspaceId={workspaceId} workspaceName = {workspace!.name} userId={session.user.id} ownerId = {workspace!.ownerId} canEdit={canEdit} />
             </div>
 
             <main className="flex-1 h-full overflow-y-auto bg-white">
