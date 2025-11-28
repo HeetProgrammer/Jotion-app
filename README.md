@@ -1,6 +1,6 @@
 # Jotion
 
-**[View Live Demo]((https://jotion-app-iota.vercel.app/))**
+**[View Live Demo]([https://jotion-app-iota.vercel.app/])**
 
 Jotion is a real-time collaborative workspace application built for a hackathon. It functionality mimics core Notion features, allowing users to create hierarchical documents, organize them into workspaces, and edit them simultaneously with team members.
 
@@ -89,6 +89,3 @@ As User A, invite User B's email to the workspace.
 Open the same document in both windows.
 
 Type in one window—the text will sync instantly to the other.
-
-License
-This project was created for educational purposes / hackathon submission.
