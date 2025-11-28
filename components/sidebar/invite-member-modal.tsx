@@ -24,17 +24,10 @@ export default function InviteMemberModal({ workspaceId }: {workspaceId: string}
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
-    const res = await inviteUser(workspaceId, email);
-
-    if (res!.error) {
-        toast.error(res!.error);
-    } else {
-        toast.success("Invitation sent!");
-        setEmail("");
-        // Refresh the list immediately
-        getPendingInvites(workspaceId).then(setPendingInvites);
-    }
+    const res = await inviteUser(workspaceId, email);  
+    toast.success("Invitation sent!");
+    setEmail("");
+    getPendingInvites(workspaceId).then(setPendingInvites);
     setIsLoading(false);
   };
 

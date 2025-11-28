@@ -29,8 +29,9 @@ export default function FileItem({ file, workspaceId }) {
     useEffect(() => {
         const checkPermission = async () => {
             try {
-                const temp = await getPermission(file);
+                const temp = await getPermission(file.id, workspaceId);
                 setCanEdit(temp);
+                console.log(canEdit);
             } catch (error) {
                 console.error("Failed to fetch permission:", error);
                 setCanEdit(false);

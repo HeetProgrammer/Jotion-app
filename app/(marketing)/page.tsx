@@ -1,8 +1,18 @@
 import { getSession } from "next-auth/react";
 import { BookOpen } from "lucide-react"; 
 import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  if(session){
+    redirect("/dashboard");
+  }
   return (
     <div className="flex flex-col justify-center py-12 my-0.5">
       

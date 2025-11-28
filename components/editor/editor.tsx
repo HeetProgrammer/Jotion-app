@@ -2,135 +2,111 @@
 
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
-import "@blocknote/mantine/style.css"; 
+import "@blocknote/mantine/style.css";
+import * as Y from "yjs";
+import { LiveblocksYjsProvider } from "@liveblocks/yjs";
+import { useRoom, useSelf } from "@/liveblocks.config";
+import { useEffect, useState } from "react";
 import { updateFileContent } from "@/actions/file";
-import { useState } from "react";
-import { FileDown, Code, FileText } from "lucide-react";
 
 
 
-export default function Editor({ fileId, initialContent, editable = true }) {
-  const [saveStatus, setSaveStatus] = useState("Saved");
+export default function Editor({ fileId, initialContent, editable = true }:{
+  fileId: string;
+  initialContent?: string | null;
+  editable?: boolean;
+}) {
+  const room = useRoom();
+  const [doc, setDoc] = useState<Y.Doc>();
+  const [provider, setProvider] = useState<any>();
+  const [saveStatus, setSaveStatus] = useState("Synced");
 
-  const editor = useCreateBlockNote({
-    initialContent: initialContent 
-      ? JSON.parse(initialContent) 
-      : undefined,
-  });
+  useEffect(() => {
+    const yDoc = new Y.Doc();
+    const yProvider = new LiveblocksYjsProvider(room, yDoc);
+    
+    setDoc(yDoc);
+    setProvider(yProvider);
 
-  const handleUpload = (json: string) => {
-    const text = generatePlainText()
-    setSaveStatus("Saving...");
-    updateFileContent(fileId, json, text).then(() => {
-        setSaveStatus("Saved");
-    });
-  };
+    return () => {
+      yDoc.destroy();
+      yProvider.destroy();
+    };
+  }, [room]);
 
-  let saveTimer: NodeJS.Timeout;
-
-
-  // Function that helps in downloading file
-  const downloadFile = (content: string, filename: string, type: string) => {
-    const blob = new Blob([content], { type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-
-  const generatePlainText = () => {
-    const text = editor.document.map((block) => {
-        const content = block.content;
-        if (Array.isArray(content)) {
-            // Join all text segments in this block
-            return content.map((c) => c.text).join("");
-        }
-        return ""; // Empty lines or image blocks return empty string
-    }).join("\n"); // Join blocks with newlines
-
-    return text;
+  if (!doc || !provider) {
+    return null;
   }
 
-
-  // Exports as Markdown
-  const handleExportMarkdown = async () => {
-    const markdown = await editor.blocksToMarkdownLossy(editor.document);
-    downloadFile(markdown, "document.md", "text/markdown");
-  };
-
-  // Exports as HTML
-  const handleExportHTML = async () => {
-    const html = await editor.blocksToHTMLLossy(editor.document);
-    downloadFile(html, "document.html", "text/html");
-  };
-
-  // Exports as Plain Text (Markdown syntax removed)
-  const handleExportText = async () => {
-    const text = generatePlainText();
-
-    downloadFile(text, "document.txt", "text/plain");
-    return text;
-  };
-
   return (
-    <div className="relative max-w-4xl mx-auto">
-      <div className="absolute -top-10 right-0 flex items-center gap-2">
-        {/* Status Text */}
-        <div className="text-xs text-gray-400 mr-4 select-none">
-            {saveStatus}
-        </div>
-
-        {/* Markdown Button */}
-        <button
-          onClick={handleExportMarkdown}
-          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition"
-          title="Export Markdown"
-        >
-          <FileDown className="h-3 w-3" />
-          <span>MD</span>
-        </button>
-
-        {/* HTML Button */}
-        <button
-          onClick={handleExportHTML}
-          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded transition"
-          title="Export HTML"
-        >
-          <Code className="h-3 w-3" />
-          <span>HTML</span>
-        </button>
-
-        {/* Text Button */}
-        <button
-          onClick={handleExportText}
-          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded transition"
-          title="Export Plain Text"
-        >
-          <FileText className="h-3 w-3" />
-          <span>TXT</span>
-        </button>
-      </div>
-
-      <div className="-mx-[54px] my-4 bg-white">
-        <BlockNoteView
-          editor={editor}
-          editable={editable}
-          theme="light"
-          onChange={() => {
-            // Clear previous timer
-            clearTimeout(saveTimer);
-            
-            // Wait 1s, then save
-            saveTimer = setTimeout(() => {
-                const json = JSON.stringify(editor.document);
-                handleUpload(json);
-            }, 1000);
-          }}
-        />
-      </div>
-    </div>
+    <BlockNoteEditor 
+      doc={doc} 
+      provider={provider} 
+      fileId={fileId} 
+      initialContent={initialContent}
+      saveStatus={saveStatus}
+      setSaveStatus={setSaveStatus}
+      editable={editable}
+    />
   );
+}
+
+function BlockNoteEditor({ doc, provider, fileId, initialContent, saveStatus, setSaveStatus, editable }: any) {
+    
+    const userInfo = useSelf((me) => me.info);
+
+    const editor = useCreateBlockNote({
+        collaboration: {
+            provider,
+            fragment: doc.getXmlFragment("document-store"),
+            user: {
+                name: userInfo?.name || "Guest",
+                color: userInfo?.color || "#ff0000",
+            },
+        },
+    });
+
+    useEffect(() => {
+        async function loadInitial() {
+            if (editor.document.length === 0 && initialContent) {
+                const blocks = await editor.tryParseMarkdownToBlocks(initialContent); 
+                editor.replaceBlocks(editor.document, JSON.parse(initialContent));
+            }
+        }
+        loadInitial();
+    }, [editor, initialContent]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+             const json = JSON.stringify(editor.document);
+             const plainText = editor.document.map((block: any) => {
+                const content = block.content;
+                if (Array.isArray(content)) {
+                    return content.map((c) => c.text).join("");
+                }
+                return "\n"; 
+             }).join("\n");
+
+             updateFileContent(fileId, json, plainText).then(() => setSaveStatus("Saved"));
+        }, 5000);
+
+        return () => clearInterval(interval);
+
+    }, [editor, fileId, setSaveStatus]);
+
+    return (
+        <div className="relative max-w-4xl mx-auto">
+            <div className="absolute top-[-30px] right-0 text-xs text-gray-400">
+                {saveStatus}
+            </div>
+            
+            <div className="-mx-[54px] my-4 bg-white">
+                <BlockNoteView
+                    editor={editor}
+                    editable={editable}
+                    theme="light"
+                />
+            </div>
+        </div>
+    );
 }

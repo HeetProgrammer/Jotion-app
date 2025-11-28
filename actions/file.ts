@@ -119,28 +119,37 @@ export async function renameFile(fileId: string, newTitle: string) {
 
 
 
-// Checks whether user can edit file
-export async function getPermission(file: any) {
+
+
+export async function getPermission(fileId: string, workspaceId: string) {
   const session = await checkUserExists();
-  const membership =  await checkWorkspaceMembership(file.workspaceId, session);
-  let fileMember = await prisma.filePermission.findFirst({
+
+  const fileOverride = await prisma.filePermission.findFirst({
     where: {
-      fileId: file.id,
+      fileId: fileId,
       userId: session.user.id
     }
-  })
-  console.log(membership.role);
-  if(!fileMember){
-    fileMember = await prisma.filePermission.create({
-      data:{
-        canEdit: membership.role != "MEMBER",
-        fileId: file.id,
-        userId: session.user.id
-      }
-    })
+  });
+
+  if (fileOverride) {
+      return fileOverride.canEdit; // Obey the overriden role
   }
-  return fileMember!.canEdit;
+
+  // Fallback to Workspace Role
+  const membership = await prisma.workspaceMember.findFirst({
+    where: { 
+        userId: session.user.id,
+        workspaceId: workspaceId 
+    }
+  });
+
+  if (!membership) return false;
+
+  // Defines who can edit
+  const allowedRoles = ["OWNER", "EDITOR"]; 
   
+
+  return allowedRoles.includes(membership.role);
 }
     
 

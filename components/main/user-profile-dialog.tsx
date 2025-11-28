@@ -10,10 +10,12 @@ import { LogOut } from "lucide-react";
 
 
 
+
 export default function UserProfileDialog({ initialName, initialEmail }: { initialName: string, initialEmail: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    
 
     const [formData, setFormData] = useState({
         name: initialName,
@@ -115,7 +117,7 @@ export default function UserProfileDialog({ initialName, initialEmail }: { initi
                                     type="submit"
                                     className="w-full flex items-center justify-center gap-2 text-red-600 border border-red-200 py-2 rounded-md hover:bg-red-50 transition text-sm font-medium"
                                 >
-                                    <LogOut className="h-4 w-4" />
+                                    <LogOut className="h-4 w-4"/>
                                     Sign Out
                                 </button>
                             </form>
