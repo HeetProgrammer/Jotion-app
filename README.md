@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jotion
+
+**[View Live Demo](https://jotion-app-iota.vercel.app/)**
+
+Jotion is a real-time collaborative workspace application. It functionality mimics core Notion features, allowing users to create hierarchical documents, organize them into workspaces, and edit them simultaneously with team members.
+
+
+
+## Key Features
+
+* **Real-time Collaboration:** Multiplayer text editing with live cursors and presence (powered by Liveblocks & Yjs).
+* **Hierarchical File System:** Infinite nesting of pages and folders.
+* **Multi-Workspace Architecture:** Users can create different workspaces and switch contexts easily.
+* **Role-Based Access:** Granular permissions for Owners, Editors, and Viewers.
+* **Email Invitations:** Invite members to join your workspace via email (powered by Resend).
+* **Secure Authentication:** Full session management and protection.
+
+## Tech Stack
+
+* **Framework:** Next.js 15 (App Router)
+* **Language:** TypeScript
+* **Database:** PostgreSQL (via Neon)
+* **ORM:** Prisma
+* **Real-time:** Liveblocks
+* **UI Components:** Shadcn UI + Tailwind CSS
+* **Editor:** BlockNote
 
 ## Getting Started
 
-First, run the development server:
+Follow these steps to run the project locally.
+
+### 1. Clone the repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone [https://github.com/yourusername/jotion.git](https://github.com/yourusername/jotion.git)
+cd jotion
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configure Environment Variables
+Create a .env.local file in the root directory. You will need keys for the database, authentication, and real-time services.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Code snippet
+```
+# Database (Postgres connection string)
+DATABASE_URL="postgres://..."
 
-## Learn More
+# Liveblocks (Real-time collaboration)
+LIVEBLOCKS_SECRET_KEY="sk_prod_..."
 
-To learn more about Next.js, take a look at the following resources:
+# Authentication (Random string for securing sessions)
+BETTER_AUTH_SECRET="your_generated_secret_here"
+BETTER_AUTH_URL="http://localhost:3000"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Resend (Email Invites)
+RESEND_API_KEY="re_..."
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Setup Database
+Push the schema to your database instance.
 
-## Deploy on Vercel
+```Bash
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+npx prisma db push
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 5. Run the application
+Bash
+
+```
+npm run dev
+```
+
+The app should now be running at http://localhost:3000.
+
+### How to Test Collaboration
+To verify the real-time features locally:
+
+Open http://localhost:3000 in your main browser and log in as User A.
+
+Open a new Incognito/Private window and log in as User B.
+
+As User A, invite User B's email to the workspace.
+
+Open the same document in both windows.
+
+Type in one window—the text will sync instantly to the other.
